@@ -11,5 +11,5 @@ optimizer = ["glsl-optimizer-sys", "libc"]
 glob = "0.2"
 regex = "0.1"
 lazy_static = "0.2"
-glsl-optimizer-sys = { git = "https://github.com/mathewv/rust-glsl-optimizer-sys.git", optional = true }
+glsl-optimizer-sys = { version = "0.1", optional = true }
 libc = { version = "0.2", optional = true }
