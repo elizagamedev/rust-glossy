@@ -1,0 +1,15 @@
+[package]
+name = "glossy"
+version = "0.1.0"
+authors = ["Mathew Velasquez <mathewvq@gmail.com>"]
+
+[features]
+default = ["optimizer"]
+optimizer = ["glsl-optimizer-sys", "libc"]
+
+[dependencies]
+glob = "0.2"
+regex = "0.1"
+lazy_static = "0.2"
+glsl-optimizer-sys = { git = "https://github.com/mathewv/rust-glsl-optimizer-sys.git", optional = true }
+libc = { version = "0.2", optional = true }
