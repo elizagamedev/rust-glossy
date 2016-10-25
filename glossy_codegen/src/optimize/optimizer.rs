@@ -16,9 +16,7 @@ impl Optimizer {
             Language::OpenGlEs20 => ffi::kGlslTargetOpenGLES20,
             Language::OpenGlEs30 => ffi::kGlslTargetOpenGLES30,
         };
-        Optimizer {
-            ctx: unsafe { ffi::glslopt_initialize(lang) },
-        }
+        Optimizer { ctx: unsafe { ffi::glslopt_initialize(lang) } }
     }
 
     pub fn optimize(&self, source: String, kind: SourceKind) -> Result<String, String> {
@@ -47,18 +45,25 @@ impl Shader {
             _ => unreachable!(),
         };
         let source = CString::new(source).unwrap();
-        let shader = unsafe { ffi::glslopt_optimize(opt.ctx, kind, source.as_ptr(), ffi::kGlslOptionSkipPreprocessor) };
-        Shader {
-            shader: shader,
-        }
+        let shader = unsafe {
+            ffi::glslopt_optimize(opt.ctx,
+                                  kind,
+                                  source.as_ptr(),
+                                  ffi::kGlslOptionSkipPreprocessor)
+        };
+        Shader { shader: shader }
     }
 
     fn source(&self) -> Result<String, String> {
         unsafe {
             if ffi::glslopt_get_status(self.shader) {
-                Ok(CStr::from_ptr(ffi::glslopt_get_output(self.shader)).to_string_lossy().into_owned())
+                Ok(CStr::from_ptr(ffi::glslopt_get_output(self.shader))
+                    .to_string_lossy()
+                    .into_owned())
             } else {
-                Err(CStr::from_ptr(ffi::glslopt_get_log(self.shader)).to_string_lossy().into_owned())
+                Err(CStr::from_ptr(ffi::glslopt_get_log(self.shader))
+                    .to_string_lossy()
+                    .into_owned())
             }
         }
     }

@@ -1,3 +1,7 @@
+//! This is the code generation/build script component of glossy.
+//!
+//! Refer to the [glossy](../glossy/index.html) module for more details.
+
 extern crate glob;
 extern crate regex;
 #[macro_use]
@@ -155,7 +159,12 @@ impl Config {
             let source = read_file(&shader_source.path);
 
             // #include
-            let (source, version) = self.process(&mut include_map, &name, source.trim_right(), Vec::new(), 0, None);
+            let (source, version) = self.process(&mut include_map,
+                                                 &name,
+                                                 source.trim_right(),
+                                                 Vec::new(),
+                                                 0,
+                                                 None);
 
             // optimize
             let source = if self.version_supported(version) {
@@ -176,7 +185,9 @@ impl Config {
 
         // Write the map source file
         let mut file = File::create(out_path.join("glossy_file_id_to_name.rs")).unwrap();
-        write!(&mut file, "|id: u32| -> Option<&'static str> {{ match id {{\n").unwrap();
+        write!(&mut file,
+               "|id: u32| -> Option<&'static str> {{ match id {{\n")
+            .unwrap();
         let mut include_map: Vec<(String, usize)> = include_map.into_iter().collect();
         include_map.sort_by_key(|&(_, ref v)| *v);
         for (name, id) in include_map.into_iter() {
@@ -192,7 +203,8 @@ impl Config {
                source: &str,
                include_stack: Vec<&str>,
                file_id: usize,
-               version: Option<&str>) -> (String, String) {
+               version: Option<&str>)
+               -> (String, String) {
         use std::fmt::Write;
 
         lazy_static! {
@@ -244,9 +256,7 @@ impl Config {
                     block_comment = true;
                     &line_after_line_comments[..idx]
                 }
-                None => {
-                    &line_after_line_comments
-                }
+                None => &line_after_line_comments,
             };
 
             if EMPTY_RE.is_match(line_no_comments) {
@@ -262,8 +272,11 @@ impl Config {
                     // If the version is different than the one passed in, panic
                     if let Some(version) = version {
                         if parsed_version != version {
-                            panic!("included file \"{}\" specifies version {}, but parent specifies \"{}\"",
-                                       name, parsed_version, version);
+                            panic!("included file \"{}\" specifies version {}, but parent \
+                                    specifies \"{}\"",
+                                   name,
+                                   parsed_version,
+                                   version);
                         }
                     }
                     // The first line is 2
@@ -284,17 +297,20 @@ impl Config {
                     // Default to our parent's version; if None, then the default.
                     parsed_version = match version {
                         Some(v) => v.to_string(),
-                        None => match self.lang {
-                            Language::OpenGl => "110".to_string(),
-                            Language::OpenGlEs20 | Language::OpenGlEs30 => "100".to_string(),
+                        None => {
+                            match self.lang {
+                                Language::OpenGl => "110".to_string(),
+                                Language::OpenGlEs20 |
+                                Language::OpenGlEs30 => "100".to_string(),
+                            }
                         }
                     };
                 }
             }
 
             if self.preserve_line_info {
-                // If the line is not empty, and we've not yet inserted a line directive, we can now
-                // do so.
+                // If the line is not empty, and we've not yet inserted a line directive,
+                // we can now do so.
                 if !first_line && EMPTY_RE.is_match(line_no_comments) {
 
                 }
@@ -327,12 +343,16 @@ impl Config {
 
             // This is an #include! So #include it.
             let include_source = self.includes.get(include_name).unwrap_or_else(|| {
-                panic!("shader file \"{}\" includes non-existent file \"{}\"", name, include_name);
+                panic!("shader file \"{}\" includes non-existent file \"{}\"",
+                       name,
+                       include_name);
             });
             // But first, see if we've already got it in our #include stack, and complain about
             // recursive includes.
             if include_stack.contains(&include_name) {
-                panic!("recursive inclusion of \"{}\" in shader file \"{}\"", include_name, name);
+                panic!("recursive inclusion of \"{}\" in shader file \"{}\"",
+                       include_name,
+                       name);
             }
             // Process the included file
             let mut sub_include_stack = include_stack.clone();
@@ -340,15 +360,21 @@ impl Config {
             let new_id = include_map.len() + 1;
             let include_file_id = *include_map.entry(include_name.to_string()).or_insert(new_id);
             let (include_source, _) = self.process(include_map,
-                                                    include_name,
-                                                    include_source,
-                                                    sub_include_stack,
-                                                    include_file_id,
-                                                    Some(&parsed_version));
+                                                   include_name,
+                                                   include_source,
+                                                   sub_include_stack,
+                                                   include_file_id,
+                                                   Some(&parsed_version));
             if self.preserve_line_info {
-                write!(&mut output, "{}\n#line {} {}\n", include_source, line_num + 2, file_id).unwrap();
+                write!(&mut output,
+                       "{}\n#line {} {}\n",
+                       include_source,
+                       line_num + 2,
+                       file_id)
+                    .unwrap();
                 if block_comment {
-                    // If there was a start of a block comment on this line, we need to insert that here
+                    // If there was a start of a block comment on this line,
+                    // we need to insert that here
                     write!(&mut output, "/*\n").unwrap();
                 }
             } else {
@@ -359,9 +385,18 @@ impl Config {
         }
         // Return
         if include_stack.is_empty() {
-            (format!("#version {}\n#line {} {}\n{}", parsed_version, first_line_num, file_id, output.trim_right()), parsed_version)
+            (format!("#version {}\n#line {} {}\n{}",
+                     parsed_version,
+                     first_line_num,
+                     file_id,
+                     output.trim_right()),
+             parsed_version)
         } else {
-            (format!("#line {} {}\n{}", first_line_num, file_id, output.trim_right()), parsed_version)
+            (format!("#line {} {}\n{}",
+                     first_line_num,
+                     file_id,
+                     output.trim_right()),
+             parsed_version)
         }
     }
 
@@ -370,7 +405,8 @@ impl Config {
     fn version_supported(&self, version: String) -> bool {
         match self.lang {
             Language::OpenGl => (self.allow_untested || version == "110" || version == "120"),
-            Language::OpenGlEs20 | Language::OpenGlEs30 => (version == "100" || version == "300"),
+            Language::OpenGlEs20 |
+            Language::OpenGlEs30 => (version == "100" || version == "300"),
         }
     }
 

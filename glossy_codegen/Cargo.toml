@@ -19,5 +19,5 @@ lazy_static = "0.2"
 glsl-optimizer-sys = { version = "0.1", optional = true }
 libc = { version = "0.2", optional = true }
 
-[dev-dependencies.glossy]
+[dependencies.glossy]
 path = "../glossy"
