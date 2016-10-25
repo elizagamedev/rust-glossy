@@ -2,7 +2,8 @@ extern crate libc;
 extern crate glsl_optimizer_sys as ffi;
 
 use std::ffi::{CStr, CString};
-use build::{Language, SourceKind};
+use Language;
+use optimize::SourceKind;
 
 pub struct Optimizer {
     ctx: *mut ffi::glslopt_ctx,
