@@ -17,7 +17,7 @@ Example Usage
 
 In build script `build.rs`:
 
-```
+```rust
 extern crate glossy_codegen as glsl;
 
 void main() {
@@ -32,7 +32,7 @@ void main() {
 
 In Rust source file `main.rs`:
 
-```
+```rust
 #[macro_use]
 extern crate glossy;
 extern crate glium;
@@ -50,7 +50,7 @@ void main() {
 
 In shader source file `shader.frag`:
 
-```
+```glsl
 #version 120
 #include "common.glsl"
 
