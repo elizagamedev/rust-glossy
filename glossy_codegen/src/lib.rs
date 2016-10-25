@@ -1,6 +1,8 @@
 extern crate glob;
 extern crate regex;
-#[cfg(feature = "optimizer")]
+#[macro_use]
+extern crate lazy_static;
+
 mod optimize;
 
 use std::env;
@@ -8,13 +10,9 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Read;
-use self::glob::glob;
-use self::regex::Regex;
-
-#[cfg(feature = "optimizer")]
-use self::optimize::Optimizer;
-#[cfg(not(feature = "optimizer"))]
-type Optimizer = ();
+use glob::glob;
+use regex::Regex;
+use optimize::{Optimizer, SourceKind};
 
 /// The language that glossy will target when optimizing shaders.
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -177,17 +175,14 @@ impl Config {
         }
 
         // Write the map source file
-        let mut file = File::create(out_path.join("glossy_map.rs")).unwrap();
-        write!(&mut file, "{{use std::collections::HashMap; let mut map: HashMap<usize, &'static str> = HashMap::new();\n").unwrap();
+        let mut file = File::create(out_path.join("glossy_file_id_to_name.rs")).unwrap();
+        write!(&mut file, "|id: u32| -> Option<&'static str> {{ match id {{\n").unwrap();
         let mut include_map: Vec<(String, usize)> = include_map.into_iter().collect();
         include_map.sort_by_key(|&(_, ref v)| *v);
         for (name, id) in include_map.into_iter() {
-            write!(&mut file, "map.insert({}, \"{}\");\n", id, name).unwrap();
+            write!(&mut file, "{} => Some({:?}),\n", id, name).unwrap();
         }
-        write!(&mut file, "map }}").unwrap();
-
-        // Set the glossy_macros_only cfg
-        println!("cargo:rustc-cfg=glossy_macros_only");
+        write!(&mut file, "_ => None }} }}").unwrap();
     }
 
     /// Helper function which returns a newly-generated shader source with inlined #includes
@@ -394,13 +389,6 @@ impl Config {
         // dummy
         source
     }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum SourceKind {
-    Vertex,
-    Fragment,
-    Unknown,
 }
 
 struct Source {
