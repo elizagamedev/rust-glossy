@@ -14,4 +14,6 @@ macro_rules! shader {
 
 /// Returns the name of the shader file for the given __FILE__ value.
 #[cfg(glossy_macros_only)]
-include!(concat!(env!("OUT_DIR"), "/glossy_map.rs"));
+pub fn file_id_to_name(id: u32) -> &'static str {
+    include!(concat!(env!("OUT_DIR"), "/glossy_file_id_to_name.rs"))
+}
