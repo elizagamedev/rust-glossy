@@ -178,13 +178,13 @@ impl Config {
 
         // Write the map source file
         let mut file = File::create(out_path.join("glossy_map.rs")).unwrap();
-        write!(&mut file, "{{use std::collections::HashMap; let mut map: HashMap<usize, &'static str> = HashMap::new();\n").unwrap();
+        write!(&mut file, "pub fn id_to_file_name(id: u32) -> &'static str {{ match id {{\n").unwrap();
         let mut include_map: Vec<(String, usize)> = include_map.into_iter().collect();
         include_map.sort_by_key(|&(_, ref v)| *v);
         for (name, id) in include_map.into_iter() {
-            write!(&mut file, "map.insert({}, \"{}\");\n", id, name).unwrap();
+            write!(&mut file, "{} => Some({:?}),\n", id, name).unwrap();
         }
-        write!(&mut file, "map }}").unwrap();
+        write!(&mut file, "_ => None }} }}").unwrap();
 
         // Set the glossy_macros_only cfg
         println!("cargo:rustc-cfg=glossy_macros_only");
