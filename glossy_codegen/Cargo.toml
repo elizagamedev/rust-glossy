@@ -4,8 +4,8 @@ version = "0.2.0"
 authors = ["Mathew Velasquez <mathewvq@gmail.com>"]
 description = "Build dependency for glossy, a compile-time GLSL shader loader with `#include` support."
 repository = "https://github.com/mathewv/rust-glossy"
-readme = "README.md"
-keywords = ["build-dependencies", "glsl", "opengl", "opengles", "gles", "optimizer"]
+readme = "../README.md"
+keywords = ["build-dependencies", "glsl", "opengl", "gles", "optimizer"]
 license = "MPL-2.0"
 
 [features]
@@ -20,4 +20,5 @@ glsl-optimizer-sys = { version = "0.1", optional = true }
 libc = { version = "0.2", optional = true }
 
 [dependencies.glossy]
+version = "0.2"
 path = "../glossy"
