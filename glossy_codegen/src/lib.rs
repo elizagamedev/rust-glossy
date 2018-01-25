@@ -421,9 +421,9 @@ impl Config {
     }
 
     #[cfg(not(feature = "optimizer"))]
-    fn do_optimize(&self, source: String) -> String {
+    fn do_optimize(&self, source: String, _: SourceKind) -> Result<String, String> {
         // dummy
-        source
+        Ok(source)
     }
 }
 
